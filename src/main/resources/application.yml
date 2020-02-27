@@ -1,0 +1,15 @@
+spring:
+  main:
+    web-application-type: none
+solace:
+  java:
+    host: mrrwtxvklyzl3.messaging.solace.cloud:55555
+    msgVpn: msgvpn-rwtxvklyzk9
+    clientUsername: solace-cloud-client
+    clientPassword: 2bv9lctv5kl5k73dgn5o9al8s7
+logging:
+  level:
+    root: INFO
+    com.damaru.messagemusic.MusicPlayer: DEBUG
+    org.springframework: INFO
+
