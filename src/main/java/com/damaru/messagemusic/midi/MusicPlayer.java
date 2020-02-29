@@ -75,6 +75,9 @@ public class MusicPlayer {
                 log.warn("Got a channel that's higher than expected. Num channels: {} channel: {}", numChannels, channel);
             } else {
                 ChannelModel channelModel = musicModel.getChannelModel(channel);
+                if (channelModel.getMute()) {
+                    return;
+                }
                 Note note = channelModel.getNote(value);
                 int num = note.getNoteNum();
                 Note prevNote = currentNotes[channel];

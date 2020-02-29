@@ -50,4 +50,43 @@ public class MusicModel {
             model.setNoteList(null);
         }
     }
+
+    public void setSolo(int id, Boolean on) {
+        if (on) {
+            boolean allOn = true;
+            // If all other channels are on, turn them all off.
+            for (ChannelModel cm : channelModels) {
+                if (cm.getId() != id && cm.getSolo()) {
+                    allOn = false;
+                    break;
+                }
+            }
+
+            if (allOn) {
+                for (ChannelModel cm : channelModels) {
+                    if (cm.getId() != id) {
+                        cm.setMute(true);
+                    }
+                }
+            }
+        } else {
+            // We're switching off the solo button. Unmute the others if they're all muted.
+            boolean allOff = true;
+            // If all other channels are on, turn them all off.
+            for (ChannelModel cm : channelModels) {
+                if (cm.getId() != id && !cm.getMute()) {
+                    allOff = false;
+                    break;
+                }
+            }
+
+            if (allOff) {
+                for (ChannelModel cm : channelModels) {
+                    if (cm.getId() != id) {
+                        cm.setMute(false);
+                    }
+                }
+            }
+        }
+    }
 }

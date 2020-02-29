@@ -11,5 +11,6 @@ logging:
   level:
     root: INFO
     com.damaru.messagemusic.MusicPlayer: DEBUG
+    com.damaru.messagemusic.TemperatureListener: DEBUG
     org.springframework: INFO
 

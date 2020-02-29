@@ -10,10 +10,15 @@ import com.damaru.music.Note;
 import com.damaru.music.Scale;
 import com.damaru.music.ScaleFactory;
 import com.damaru.music.ScaleTypeName;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.HPos;
+import javafx.geometry.Orientation;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -22,6 +27,7 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import org.controlsfx.control.RangeSlider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,6 +87,13 @@ public class Controller {
 	}
 	public void addPanel(int id) {
 		try {
+
+			// kids:
+			// 0: channel label
+			// 1: instrument label
+			// 2: instrument combobox
+			// 3: hbox
+			// 4: range label
 			ChannelModel channelModel = new ChannelModel(id);
 			musicModel.addChannelModel(channelModel);
 
@@ -88,6 +101,7 @@ public class Controller {
 			fxmlLoader.setControllerFactory(aClass -> applicationContext.getBean(aClass));
 			GridPane gridPane = (GridPane) fxmlLoader.load();
 			List kids = gridPane.getChildren();
+
 
 			Label label = (Label) kids.get(0);
 			label.setText("Channel " + id);
@@ -102,6 +116,29 @@ public class Controller {
 				e.printStackTrace();
 			}
 			comboBox.getSelectionModel().select(0);
+
+			HBox hbox = (HBox) kids.get(3);
+			List hboxKids = hbox.getChildren();
+
+			ToggleButton soloButton = (ToggleButton) hboxKids.get(0);
+			soloButton.selectedProperty().bindBidirectional(channelModel.soloProperty());
+			channelModel.setSoloButton(soloButton);
+
+			ToggleButton muteButton = (ToggleButton) hboxKids.get(1);
+			muteButton.selectedProperty().bindBidirectional(channelModel.muteProperty());
+			channelModel.setMuteButton(muteButton);
+
+			final RangeSlider hSlider = new RangeSlider(0, 127, 48, 72);
+			hSlider.setId("" + id);
+			hSlider.setOrientation(Orientation.VERTICAL);
+			hSlider.setShowTickMarks(true);
+			hSlider.setShowTickLabels(true);
+			hSlider.setBlockIncrement(10);
+			hSlider.lowValueProperty().bindBidirectional(channelModel.lowNoteProperty());
+			hSlider.highValueProperty().bindBidirectional(channelModel.highNoteProperty());
+			gridPane.add(hSlider, 1, 3);
+			gridPane.setHalignment(hSlider, HPos.CENTER);
+
 			log.info("--------- loaded " + gridPane);
 			final Scene scene = deviceCombo.getScene();
 			final BorderPane root = (BorderPane) scene.getRoot();
@@ -141,24 +178,4 @@ public class Controller {
 			musicPlayer.stop();
 		}
 	}
-
 }
-
-//class ButtonEventHandler implements EventHandler<ActionEvent> {
-//	private static final Logger log = LoggerFactory.getLogger(ButtonEventHandler.class);
-//
-//	List<ChannelModel> channelModels;
-//
-//	ButtonEventHandler(List<ChannelModel> channelModels) {
-//		this.channelModels = channelModels;
-//	}
-//
-//	@Override
-//	public void handle(ActionEvent actionEvent) {
-//		Button button = (Button) actionEvent.getSource();
-//		log.info("Got event " + button.getId());
-//		for (ChannelModel channelModel : channelModels) {
-//			log.info("Instrument: " + channelModel.getInstrumentValue());
-//		}
-//	}
-//}
