@@ -10,7 +10,8 @@ solace:
 logging:
   level:
     root: INFO
-    com.damaru.messagemusic.MusicPlayer: DEBUG
-    com.damaru.messagemusic.TemperatureListener: DEBUG
+    com.damaru.messagemusic:
+      MusicPlayer: DEBUG
+      TemperatureListener: INFO
     org.springframework: INFO
 

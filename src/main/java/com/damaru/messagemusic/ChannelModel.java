@@ -7,7 +7,10 @@ import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.scene.control.Label;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +24,7 @@ public class ChannelModel {
 
     private int id;
     private List<Note> noteList;
+    private Note prevNote;
     private ObjectProperty<InstrumentValue> instrumentValueProp = new SimpleObjectProperty<>();
     private IntegerProperty lowNote = new SimpleIntegerProperty();
     private IntegerProperty highNote = new SimpleIntegerProperty();
@@ -30,10 +34,14 @@ public class ChannelModel {
     private StringProperty note = new SimpleStringProperty();
     private ToggleButton soloButton;
     private ToggleButton muteButton;
+    private Label valueLabel;
+    private Label noteLabel;
     private static String MUTE_ON_STYLE = "-fx-background-color: red";
     private static String MUTE_OFF_STYLE = "-fx-background-color: pink";
     private static String SOLO_ON_STYLE = "-fx-background-color: green";
     private static String SOLO_OFF_STYLE = "-fx-background-color: lightgreen";
+    private Font normalFont;
+    private Font boldFont;
 
     private ChangeListener<Number> noteChangeListener = new ChangeListener<>() {
         @Override
@@ -97,15 +105,30 @@ public class ChannelModel {
             index = numNotes - 1;
         }
         Note ret = noteList.get(index);
+        boolean newNote = false;
+
+        if (prevNote == null || ret.getNoteNum() != prevNote.getNoteNum()) {
+            // visually notify the user by making the value/note labels bold.
+            prevNote = ret;
+            newNote = true;
+        }
 
         final double v = val;
+        final boolean n = newNote;
+
         Platform.runLater(new Runnable(){
             @Override
             public void run() {
                 value.set(String.format("%2.1f", v));
-                note.set(ret.getName());
+
+                if (n) {
+                    note.set(ret.getName());
+                    valueLabel.setFont(boldFont);
+                    noteLabel.setFont(boldFont);
+                }
             }
         });
+
 
         return ret;
     }
@@ -164,4 +187,20 @@ public class ChannelModel {
 
     public StringProperty valueProperty() { return value; }
     public StringProperty noteProperty() { return note; }
+
+    public void flashLabel() {
+        valueLabel.setFont(normalFont);
+        noteLabel.setFont(normalFont);
+    }
+
+    public void setValueLabel(Label valueLabel) {
+        this.valueLabel = valueLabel;
+        Font f = valueLabel.getFont();
+        normalFont = Font.font(f.getFamily(), FontWeight.NORMAL, f.getSize());
+        boldFont = Font.font(f.getFamily(), FontWeight.BOLD, f.getSize());
+    }
+
+    public void setNoteLabel(Label noteLabel) {
+        this.noteLabel = noteLabel;
+    }
 }

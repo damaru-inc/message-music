@@ -22,6 +22,7 @@ public class MusicPlayer {
     public static final int INTERVAL = 20; // milliseconds sleep time
     private static final int LOOPS_PER_SECOND = 1000 / INTERVAL;
     private static final int DURATION = LOOPS_PER_SECOND * 10;
+    private static final int FLASH_DURATION = LOOPS_PER_SECOND;
 
 
     @Autowired
@@ -32,6 +33,7 @@ public class MusicPlayer {
     private Note[] currentNotes;
     private Note[] noteOffs;
     private long[] noteOffTimes;
+    private long[] labelFlashTimes;
     private Future<String> playFuture;
     private boolean running;
 
@@ -40,7 +42,8 @@ public class MusicPlayer {
             currentDevice.open();
             currentReceiver = currentDevice.getReceiver();
             List<ChannelModel> channelModels = musicModel.getChannelModels();
-            for (int channel = 0; channel < channelModels.size(); channel++) {
+            int numChannels = channelModels.size();
+            for (int channel = 0; channel < numChannels; channel++) {
                 ChannelModel channelModel = channelModels.get(channel);
                 try {
                     Midi.sendProgramChangeMessage(currentReceiver, channel, channelModel.getInstrumentValue().getProgram());
@@ -50,10 +53,12 @@ public class MusicPlayer {
                     return;
                 }
             }
-            noteOffs = new Note[channelModels.size()];
-            noteOffTimes = new long[channelModels.size()];
-            currentNotes = new Note[channelModels.size()];
-            playFuture = noteOffHandler.start(currentReceiver, noteOffs, noteOffTimes);
+
+            noteOffs = new Note[numChannels];
+            noteOffTimes = new long[numChannels];
+            currentNotes = new Note[numChannels];
+            labelFlashTimes = new long[numChannels];
+            playFuture = noteOffHandler.start(this, currentReceiver, noteOffs, noteOffTimes, labelFlashTimes);
             running = true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -95,6 +100,7 @@ public class MusicPlayer {
                         synchronized (this) {
                             noteOffs[channel] = note;
                             noteOffTimes[channel] = noteOffTick;
+                            labelFlashTimes[channel] = tick + FLASH_DURATION;
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -110,5 +116,9 @@ public class MusicPlayer {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void flashLabel(int i) {
+        musicModel.flashLabel(i);
     }
 }

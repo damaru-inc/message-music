@@ -163,8 +163,10 @@ public class Controller {
 			hboxKids = hbox.getChildren();
 			Label valueLabel = (Label) hboxKids.get(0);
 			valueLabel.textProperty().bindBidirectional(channelModel.valueProperty());
+			channelModel.setValueLabel(valueLabel);
 			Label noteLabel = (Label) hboxKids.get(1);
 			noteLabel.textProperty().bindBidirectional(channelModel.noteProperty());
+			channelModel.setNoteLabel(noteLabel);
 
 			final RangeSlider hSlider = new RangeSlider(0, 127, 48, 72);
 			hSlider.setId("" + id);

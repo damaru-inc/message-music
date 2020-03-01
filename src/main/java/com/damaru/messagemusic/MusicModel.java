@@ -99,4 +99,9 @@ public class MusicModel {
     IntegerProperty highInputProperty() { return highInput; }
     int getLowInput() { return lowInput.get(); }
     int getHighInput() { return highInput.get(); }
+
+    public void flashLabel(int i) {
+        ChannelModel channelModel = channelModels.get(i);
+        channelModel.flashLabel();
+    }
 }

@@ -22,7 +22,7 @@ public class NoteOffHandler {
     }
 
     @Async
-    public Future<String> start(Receiver receiver, Note[] noteOffs, long[] noteOffTimes) throws Exception {
+    public Future<String> start(MusicPlayer player, Receiver receiver, Note[] noteOffs, long[] noteOffTimes, long[] labelFlashTimes) throws Exception {
         tick = 0;
         log.info("playing");
 
@@ -33,14 +33,23 @@ public class NoteOffHandler {
                 for (int i = 0; i < noteOffs.length; i++) {
                     Note note = noteOffs[i];
                     long time = noteOffTimes[i];
+                    long flashTime = labelFlashTimes[i];
 
-                    if (note != null && time <= tick) {
-                        Midi.sendNoteOffMessage(receiver, i, note.getNoteNum(), 0);
-                        noteOffs[i] = null;
+                    if (note != null) {
+
+                        if (time <= tick) {
+                            Midi.sendNoteOffMessage(receiver, i, note.getNoteNum(), 0);
+                            noteOffs[i] = null;
+                        }
+
+                        if (flashTime > 0 && flashTime <= tick) {
+                            player.flashLabel(i);
+                            labelFlashTimes[i] = 0L;
+                        }
                     }
                 }
                 Thread.sleep(MusicPlayer.INTERVAL);
-                tick    ++;
+                tick++;
             }
         } catch (InterruptedException e) {
             log.info("interrupted....." + tick);
