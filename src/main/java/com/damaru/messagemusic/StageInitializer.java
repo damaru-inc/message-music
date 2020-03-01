@@ -62,6 +62,7 @@ public class StageInitializer implements ApplicationListener<FxApplication.Stage
 			stage.setTitle("Visualizer");
 			stage.show();
 			controller.addPanels(4);
+			controller.setupAdditionalComponents();
 			log.info("--------- loaded " + screenResource.getURL());
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -69,8 +70,5 @@ public class StageInitializer implements ApplicationListener<FxApplication.Stage
 		}
 	}
 
-	public void update(int index, double value) {
-		values[index] = value;
-	}
 }
 

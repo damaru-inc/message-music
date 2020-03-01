@@ -3,6 +3,8 @@ package com.damaru.messagemusic;
 import com.damaru.music.Note;
 import com.damaru.music.Scale;
 import com.damaru.music.ScaleTypeName;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -14,6 +16,9 @@ public class MusicModel {
 
     private ScaleTypeName scaleTypeName = ScaleTypeName.MAJOR;
     private Note keyNote = new Note(0);
+    private IntegerProperty lowInput = new SimpleIntegerProperty();
+    private IntegerProperty highInput = new SimpleIntegerProperty();
+
 
     public List<ChannelModel> getChannelModels() {
         return channelModels;
@@ -89,4 +94,9 @@ public class MusicModel {
             }
         }
     }
+
+    IntegerProperty lowInputProperty() { return lowInput; }
+    IntegerProperty highInputProperty() { return highInput; }
+    int getLowInput() { return lowInput.get(); }
+    int getHighInput() { return highInput.get(); }
 }

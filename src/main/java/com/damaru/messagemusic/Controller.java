@@ -10,6 +10,9 @@ import com.damaru.music.Note;
 import com.damaru.music.Scale;
 import com.damaru.music.ScaleFactory;
 import com.damaru.music.ScaleTypeName;
+import javafx.application.Platform;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
@@ -17,6 +20,7 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.HPos;
+import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -38,17 +42,15 @@ import org.springframework.stereotype.Component;
 
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiUnavailableException;
-import javax.sound.midi.Receiver;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.Future;
-
 
 @Component
 public class Controller {
 
 	private static final Logger log = LoggerFactory.getLogger(Controller.class);
-	int numPanels;
+	double lowValue = Double.MAX_VALUE;
+	double highValue = Double.MIN_VALUE;
 
 	@Value("classpath:/fxml/panel.fxml")
 	private Resource panelResource;
@@ -72,12 +74,42 @@ public class Controller {
 	ComboBox<ScaleTypeName> scaleCombo;
 
 	@FXML
+	Label lowValueLabel;
+
+	@FXML
+	Label highValueLabel;
+
+	private DoubleProperty lowestValue = new SimpleDoubleProperty();
+	private DoubleProperty highestValue = new SimpleDoubleProperty();
+
+	@FXML
 	public void initialize() {
 		deviceCombo.setItems(MidiUtil.getMidiDevices());
 		deviceCombo.getSelectionModel().select(0);
 
 		scaleCombo.setItems(MidiUtil.getScales());
 		scaleCombo.getSelectionModel().select(3);
+	}
+
+	public void setupAdditionalComponents() {
+		final Scene scene = deviceCombo.getScene();
+		final BorderPane root = (BorderPane) scene.getRoot();
+		final HBox box = (HBox) root.getTop();
+
+		final RangeSlider hSlider = new RangeSlider(-10, 50, 0, 40);
+		hSlider.setOrientation(Orientation.HORIZONTAL);
+		hSlider.setShowTickMarks(true);
+		hSlider.setShowTickLabels(true);
+		hSlider.setBlockIncrement(10);
+		hSlider.setMajorTickUnit(10);
+		hSlider.lowValueProperty().bindBidirectional(musicModel.lowInputProperty());
+		hSlider.highValueProperty().bindBidirectional(musicModel.highInputProperty());
+		hSlider.setPrefWidth(500.0);
+		HBox.setMargin(hSlider, new Insets(20, 20, 20, 20));
+		hSlider.setHighValue(40);
+		hSlider.setLowValue(0);
+		box.getChildren().add(hSlider);
+
 	}
 
 	public void addPanels(int numPanels) {
@@ -90,10 +122,9 @@ public class Controller {
 
 			// kids:
 			// 0: channel label
-			// 1: instrument label
-			// 2: instrument combobox
-			// 3: hbox
-			// 4: range label
+			// 1: instrument combobox
+			// 2: hbox with solo and mute buttons
+			// 3: hbox with value and note labels
 			ChannelModel channelModel = new ChannelModel(id);
 			musicModel.addChannelModel(channelModel);
 
@@ -106,7 +137,7 @@ public class Controller {
 			Label label = (Label) kids.get(0);
 			label.setText("Channel " + id);
 
-			ComboBox<InstrumentValue> comboBox = (ComboBox) kids.get(2);
+			ComboBox<InstrumentValue> comboBox = (ComboBox) kids.get(1);
 			comboBox.valueProperty().bindBidirectional(channelModel.instrumentValueProperty());
 			comboBox.setOnAction(this::instrumentChanged);
 			comboBox.setId("" + id);
@@ -117,7 +148,7 @@ public class Controller {
 			}
 			comboBox.getSelectionModel().select(0);
 
-			HBox hbox = (HBox) kids.get(3);
+			HBox hbox = (HBox) kids.get(2);
 			List hboxKids = hbox.getChildren();
 
 			ToggleButton soloButton = (ToggleButton) hboxKids.get(0);
@@ -128,6 +159,13 @@ public class Controller {
 			muteButton.selectedProperty().bindBidirectional(channelModel.muteProperty());
 			channelModel.setMuteButton(muteButton);
 
+			hbox = (HBox) kids.get(3);
+			hboxKids = hbox.getChildren();
+			Label valueLabel = (Label) hboxKids.get(0);
+			valueLabel.textProperty().bindBidirectional(channelModel.valueProperty());
+			Label noteLabel = (Label) hboxKids.get(1);
+			noteLabel.textProperty().bindBidirectional(channelModel.noteProperty());
+
 			final RangeSlider hSlider = new RangeSlider(0, 127, 48, 72);
 			hSlider.setId("" + id);
 			hSlider.setOrientation(Orientation.VERTICAL);
@@ -136,8 +174,9 @@ public class Controller {
 			hSlider.setBlockIncrement(10);
 			hSlider.lowValueProperty().bindBidirectional(channelModel.lowNoteProperty());
 			hSlider.highValueProperty().bindBidirectional(channelModel.highNoteProperty());
-			gridPane.add(hSlider, 1, 3);
+			gridPane.add(hSlider, 0, 4);
 			gridPane.setHalignment(hSlider, HPos.CENTER);
+			GridPane.setMargin(hSlider, new Insets(20, 0, 20, 0));
 
 			log.info("--------- loaded " + gridPane);
 			final Scene scene = deviceCombo.getScene();
@@ -176,6 +215,30 @@ public class Controller {
 			musicPlayer.start(currentDevice);
 		} else {
 			musicPlayer.stop();
+		}
+	}
+
+	public void setValue(Double temperature) {
+		if (temperature > highValue) {
+			highValue = temperature;
+
+			Platform.runLater(new Runnable(){
+				@Override
+				public void run() {
+					highValueLabel.setText(String.format("%2.1f", highValue));
+				}
+			});
+		}
+
+		if (temperature < lowValue) {
+			lowValue = temperature;
+			Platform.runLater(new Runnable(){
+				@Override
+				public void run() {
+					lowValueLabel.setText(String.format("%2.1f", lowValue));
+				}
+			});
+
 		}
 	}
 }

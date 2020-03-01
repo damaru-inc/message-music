@@ -36,11 +36,21 @@
                   <Insets top="20.0" />
                </HBox.margin>
             </ToggleButton>
+            <Label fx:id="lowValueLabel" text="Low">
+               <HBox.margin>
+                  <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+               </HBox.margin>
+            </Label>
+            <Label fx:id="highValueLabel" text="High">
+               <HBox.margin>
+                  <Insets top="20.0" />
+               </HBox.margin>
+            </Label>
          </children>
       </HBox>
    </top>
    <center>
-      <HBox BorderPane.alignment="CENTER">
+      <HBox alignment="CENTER" BorderPane.alignment="CENTER">
          <BorderPane.margin>
             <Insets bottom="20.0" left="20.0" right="20.0" />
          </BorderPane.margin></HBox>

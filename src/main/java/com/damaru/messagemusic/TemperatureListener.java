@@ -16,11 +16,15 @@ class TemperatureListener implements TemperatureMessage.SubscribeListener {
 	@Autowired
 	MusicPlayer musicPlayer;
 
+	@Autowired
+	Controller controller;
+
 	@Override
 	public void onReceive(TemperatureMessage temperatureMessage) {
 		Temperature temperature = temperatureMessage.getPayload();
 		log.debug("temp: " + temperature.getSensorId() + ": " + temperature.getTemperature());
 		musicPlayer.setValue(temperature.getSensorId(), temperature.getTemperature());
+		controller.setValue(temperature.getTemperature());
 	}
 
 	@Override
